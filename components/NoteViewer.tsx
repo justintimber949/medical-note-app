@@ -3,6 +3,7 @@
 import ReactMarkdown from "react-markdown";
 import { Download, Copy, Check } from "lucide-react";
 import { useState } from "react";
+import remarkGfm from "remark-gfm";
 
 interface NoteViewerProps {
     content: string;
@@ -52,8 +53,8 @@ export default function NoteViewer({ content }: NoteViewerProps) {
                     </button>
                 </div>
             </div>
-            <div className="p-6 max-h-[800px] overflow-y-auto prose prose-blue max-w-none prose-headings:text-gray-900 prose-p:text-gray-800 prose-strong:text-gray-900 prose-li:text-gray-800">
-                <ReactMarkdown>{content}</ReactMarkdown>
+            <div className="p-8 max-h-[800px] overflow-y-auto prose prose-slate max-w-none prose-headings:font-bold prose-h1:text-3xl prose-h2:text-2xl prose-h3:text-xl prose-p:text-gray-700 prose-li:text-gray-700 prose-strong:text-gray-900 prose-table:border-collapse prose-th:border prose-th:border-gray-300 prose-th:p-2 prose-td:border prose-td:border-gray-300 prose-td:p-2">
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
             </div>
         </div>
     );
