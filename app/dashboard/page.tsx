@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import FileUploader from "@/components/FileUploader";
 import PipelineStatus, { StageStatus } from "@/components/PipelineStatus";
-import NoteViewer from "@/components/NoteViewer";
 import { runStage1, runStage2, runStage3, delay } from "@/lib/gemini";
 import { AlertTriangle, LogOut } from "lucide-react";
 
@@ -21,7 +20,6 @@ export default function Dashboard() {
     const [stage3Status, setStage3Status] = useState<StageStatus>("pending");
     const [delayRemaining, setDelayRemaining] = useState(0);
 
-    const [finalContent, setFinalContent] = useState<string>("");
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
@@ -61,7 +59,6 @@ export default function Dashboard() {
 
         setIsProcessing(true);
         setError(null);
-        setFinalContent("");
 
         // Reset Statuses
         setStage1Status("pending");
@@ -103,7 +100,11 @@ export default function Dashboard() {
 
             // Combine Results: ASCII Art (Stage 3) + Enriched Note (Stage 2)
             const finalNote = `${stage3Result}\n\n${stage2Result}`;
-            setFinalContent(finalNote);
+
+            // Save to LocalStorage and Redirect
+            localStorage.setItem("gemini_note_content", finalNote);
+            localStorage.setItem("gemini_note_filename", file.name);
+            router.push("/dashboard/result");
 
         } catch (err: any) {
             console.error(err);
@@ -151,7 +152,7 @@ export default function Dashboard() {
                         <h2 className="text-lg font-semibold text-gray-900 mb-4">Upload Lecture Material</h2>
                         <FileUploader onFileSelect={setFile} disabled={isProcessing} />
 
-                        {file && !isProcessing && !finalContent && (
+                        {file && !isProcessing && (
                             <div className="mt-4 flex justify-end">
                                 <button
                                     onClick={handleProcess}
@@ -164,7 +165,7 @@ export default function Dashboard() {
                     </div>
 
                     {/* Pipeline Status */}
-                    {(isProcessing || finalContent || error) && (
+                    {(isProcessing || error) && (
                         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
                             <PipelineStatus
                                 stage1={stage1Status}
@@ -184,11 +185,6 @@ export default function Dashboard() {
                                 </div>
                             )}
                         </div>
-                    )}
-
-                    {/* Result Viewer */}
-                    {finalContent && (
-                        <NoteViewer content={finalContent} />
                     )}
 
                 </div>

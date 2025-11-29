@@ -17,3 +17,9 @@
 - [x] **Verification**
     - [x] Verify build.
     - [x] Verify navigation flow.
+
+- [x] **View Separation**
+    - [x] Create `app/dashboard/result/page.tsx` for dedicated note viewing.
+    - [x] Update `app/dashboard/page.tsx` to save result to LocalStorage and redirect.
+    - [x] Implement Header in Result page (Filename, Reset Key, Back).
+    - [x] Verify Markdown rendering (confirming Jekyll is unnecessary).
