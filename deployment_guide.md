@@ -28,30 +28,23 @@ Panduan ini akan membantu Anda meng-online-kan website Medical Note Generator se
     ```
     *(Ganti `USERNAME_ANDA` dengan username GitHub Anda dan `medical-note-app` sesuai nama repo Anda)*
 
-## Langkah 2: Hubungkan ke Cloudflare Pages
+## Langkah 2: Konfigurasi GitHub Pages
 
-1.  **Masuk ke Dashboard Cloudflare**:
-    *   Login ke akun Cloudflare Anda.
-    *   Di menu sebelah kiri, pilih **Workers & Pages**.
-    *   Klik tombol **Create application** > Pilih tab **Pages** > Klik **Connect to Git**.
+1.  **Buka Repository di GitHub**:
+    Masuk ke halaman repository `medical-note-app` Anda.
 
-2.  **Pilih Repository**:
-    *   Jika belum terhubung, Anda akan diminta login ke GitHub.
-    *   Pilih repository `medical-note-app` yang baru saja Anda buat.
-    *   Klik **Begin setup**.
+2.  **Masuk ke Settings**:
+    Klik tab **Settings** > Pilih menu **Pages** di sidebar kiri.
 
-3.  **Konfigurasi Build**:
-    Cloudflare biasanya otomatis mendeteksi pengaturan Next.js, tapi pastikan pengaturannya seperti ini:
-    *   **Project name**: (Biarkan default atau ubah sesuka hati)
-    *   **Production branch**: `main`
-    *   **Framework preset**: `Next.js (Static HTML Export)`
-    *   **Build command**: `npx @cloudflare/next-on-pages@1` (atau `npm run build` jika sudah dikonfigurasi static export)
-        *   *Rekomendasi*: Gunakan `npm run build` karena kita sudah set `output: 'export'` di Next.js.
-    *   **Build output directory**: `out`
+3.  **Pilih Source**:
+    *   Pada bagian **Build and deployment**, ubah **Source** menjadi **GitHub Actions**.
+    *   GitHub akan otomatis mendeteksi workflow Next.js yang sudah saya buatkan (`.github/workflows/nextjs.yml`).
 
-4.  **Deploy**:
-    *   Klik **Save and Deploy**.
-    *   Tunggu proses build selesai (biasanya 1-2 menit).
+4.  **Tunggu Proses Build**:
+    *   Klik tab **Actions** untuk melihat proses deployment yang berjalan.
+    *   Jika sukses, link website Anda akan muncul di sana (biasanya `https://USERNAME.github.io/medical-note-app/`).
+
+## Langkah 3: Hubungkan ke Cloudflare Pages (Opsional)
 
 ## Selesai!
 Setelah sukses, Cloudflare akan memberikan URL unik (misal: `medical-note-app.pages.dev`). Website Anda sekarang sudah online!
