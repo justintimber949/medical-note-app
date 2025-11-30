@@ -23,3 +23,25 @@
     - [x] Update `app/dashboard/page.tsx` to save result to LocalStorage and redirect.
     - [x] Implement Header in Result page (Filename, Reset Key, Back).
     - [x] Verify Markdown rendering (confirming Jekyll is unnecessary).
+
+- [ ] **Infrastructure: IndexedDB & Storage**
+    - [ ] Install `idb` library.
+    - [ ] Create `lib/db.ts` for managing Files, Notes, and Queue state.
+    - [ ] Implement CRUD operations (Save, Load, Delete, Rename).
+
+- [ ] **Feature: Batch Processing Engine**
+    - [ ] Create `QueueContext` or hook for managing upload queue.
+    - [ ] Implement "Resumable" logic (persist queue state to DB).
+    - [ ] Implement 30s delay with UI countdown.
+    - [ ] Handle error states and retries (clean up partial failures).
+
+- [ ] **UI: Dashboard Overhaul**
+    - [ ] Create "Library" view (List of completed notes).
+    - [ ] Create "Upload & Progress" view (Multi-file upload + Progress bars).
+    - [ ] Ensure concurrent viewing (Read note while processing others).
+
+- [ ] **Feature: Context-Aware Chatbot**
+    - [ ] Implement `ChatBot` component.
+    - [ ] Integrate Gemini 2.0 Flash.
+    - [ ] Implement "Full Context Injection" (Load all MD files from DB).
+

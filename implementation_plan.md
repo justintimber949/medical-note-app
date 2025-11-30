@@ -1,64 +1,58 @@
-# Implementation Plan: Medical Note Generator
+# Implementation Plan: Batch Processing & Chatbot
 
 ## Goal Description
-Build a static web application that allows medical students to upload lecture files (PDF/PPT), processes them through a 3-stage Gemini AI pipeline, and generates comprehensive Markdown study notes with ASCII art visualization.
-
-## Architecture
-- **Frontend**: Next.js 14 (App Router) + Tailwind CSS
-- **Deployment**: GitHub Pages (Static Export)
-- **AI Integration**: Google Generative AI SDK (Client-side)
-- **Storage**: LocalStorage (API Keys), Browser Memory (File processing)
+Enhance the Medical Note Generator to support batch processing of multiple files (20-30 PPT/PDFs), persistent storage using IndexedDB, and a context-aware Chatbot powered by Gemini 2.0 Flash.
 
 ## User Review Required
 > [!IMPORTANT]
-> **API Key Security**: Since this is a static client-side app, the user must provide their own Google AI Studio API Key. The key will be stored in the browser's LocalStorage.
-
-> [!NOTE]
-> **Model Configuration**: The app will use the specific model names requested: `gemini-2.0-flash` (Stage 1), `gemini-3.0-flash` (Stage 2), and `gemini-2.5-flash` (Stage 3). **Please ensure your API key has access to these specific model versions.**
-
-> [!TIP]
-> **Rate Limiting**: A 10-second delay will be enforced between stages to prevent hitting API rate limits.
+> **IndexedDB Persistence**: Data is stored locally in the browser. Clearing browser data will delete all notes.
+> **API Limits**: Batch processing includes a 30s delay between files to respect rate limits. Processing 20 files will take significant time (~10-15 mins).
 
 ## Proposed Changes
 
-### Project Setup
-#### [NEW] [package.json](file:///c:/Users/Ahmad taufiq/Project Antigravity/MedicalNote/package.json)
-- Initialize Next.js project with Tailwind CSS.
-- Dependencies: `@google/generative-ai`, `framer-motion`, `lucide-react`, `react-markdown`.
+### Infrastructure (IndexedDB)
+#### [NEW] [db.ts](file:///c:/Users/Ahmad taufiq/Project Antigravity/MedicalNote/lib/db.ts)
+- Use `idb` library.
+- Schema:
+    - `files`: `{ id, name, type, data (blob), createdAt }`
+    - `notes`: `{ id, fileId, content, createdAt, updatedAt }`
+    - `queue`: `{ id, fileId, status (pending/processing/completed/failed), stage (1/2/3), error }`
 
-### Core Components
-#### [NEW] [components/ApiKeyInput.tsx](file:///c:/Users/Ahmad taufiq/Project Antigravity/MedicalNote/components/ApiKeyInput.tsx)
-- Input field to save API key to LocalStorage.
-- "Reset Key" functionality.
+### Batch Processing Engine
+#### [NEW] [QueueContext.tsx](file:///c:/Users/Ahmad taufiq/Project Antigravity/MedicalNote/context/QueueContext.tsx)
+- Manages the global queue state.
+- Loads pending items from `queue` store on startup (Resumability).
+- Processes items sequentially with `setTimeout` delay.
+- Updates status in real-time.
 
-#### [NEW] [components/FileUploader.tsx](file:///c:/Users/Ahmad taufiq/Project Antigravity/MedicalNote/components/FileUploader.tsx)
-- Drag & drop interface for PDF/PPT files.
-- File reading logic (convert to Base64 for API).
+### UI Components
+#### [MODIFY] [Dashboard](file:///c:/Users/Ahmad taufiq/Project Antigravity/MedicalNote/app/dashboard/page.tsx)
+- Split layout:
+    - **Left Sidebar**: Library (List of processed notes from DB).
+    - **Main Area**: Upload Zone + Progress Dashboard.
+    - **Floating**: Chatbot Trigger.
 
-#### [NEW] [components/PipelineStatus.tsx](file:///c:/Users/Ahmad taufiq/Project Antigravity/MedicalNote/components/PipelineStatus.tsx)
-- Visual indicator of the 3 stages:
-    1.  **Transcription** (Gemini 2.0 Flash) - *Status: Processing/Waiting*
-    2.  **Enrichment** (Gemini 2.5 Pro) - *Status: Pending*
-    3.  **Visualization** (Gemini 2.5 Flash) - *Status: Pending*
-- **Loading State**: Clear "Processing... Please wait" message with progress bar.
-- **Delay Timer**: Countdown visualization during the 10s sleep between stages.
+#### [NEW] [LibraryList.tsx](file:///c:/Users/Ahmad taufiq/Project Antigravity/MedicalNote/components/LibraryList.tsx)
+- Lists completed notes.
+- Actions: Open, Rename, Delete.
 
-#### [NEW] [components/NoteViewer.tsx](file:///c:/Users/Ahmad taufiq/Project Antigravity/MedicalNote/components/NoteViewer.tsx)
-- Markdown renderer.
-- Copy/Download functionality.
+#### [NEW] [ChatBot.tsx](file:///c:/Users/Ahmad taufiq/Project Antigravity/MedicalNote/components/ChatBot.tsx)
+- Floating widget.
+- Fetches **ALL** notes from `notes` store.
+- Sends concatenated notes + user query to Gemini 2.0 Flash.
 
-### Logic
-#### [NEW] [lib/gemini.ts](file:///c:/Users/Ahmad taufiq/Project Antigravity/MedicalNote/lib/gemini.ts)
-- Functions to call the Gemini API for each stage using specific model versions.
-- **Sleep Utility**: `delay(10000)` function between calls.
-- **Content Merging**: Prepend Stage 3 (ASCII Art) to the final Markdown.
+### Navigation
+#### [NEW] [NoteViewPage](file:///c:/Users/Ahmad taufiq/Project Antigravity/MedicalNote/app/dashboard/view/[id]/page.tsx)
+- Dynamic route for viewing a specific note from DB.
+- Replaces the temporary `/dashboard/result` page.
 
 ## Verification Plan
+
+### Automated Tests
+- None (Manual verification required for UI/UX).
+
 ### Manual Verification
-1.  **API Key**: Verify key is saved and loaded from LocalStorage.
-2.  **Upload**: Upload a sample PDF.
-3.  **Pipeline**:
-    -   Check Stage 1 output (Structure).
-    -   Check Stage 2 output (Added details).
-    -   Check Stage 3 output (ASCII Art).
-4.  **Download**: Verify the downloaded .md file contains all sections.
+1.  **Batch Upload**: Upload 5 files. Verify queue processes them one by one with delay.
+2.  **Resumability**: Reload page during processing. Verify queue resumes from the correct file/stage.
+3.  **Persistence**: Close browser and reopen. Verify "Library" still lists generated notes.
+4.  **Chatbot**: Ask a question requiring knowledge from multiple generated notes. Verify accurate response.

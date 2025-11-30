@@ -9,9 +9,9 @@ interface FileUploaderProps {
     disabled?: boolean;
 }
 
-export default function FileUploader({ onFileSelect, disabled }: FileUploaderProps) {
+export default function FileUploader({ onFileSelect, disabled }: { onFileSelect: (files: File[]) => void; disabled?: boolean }) {
     const [dragActive, setDragActive] = useState(false);
-    const [fileName, setFileName] = useState<string | null>(null);
+    const [fileCount, setFileCount] = useState(0);
     const [error, setError] = useState<string | null>(null);
 
     const handleDrag = useCallback((e: React.DragEvent) => {
@@ -24,20 +24,25 @@ export default function FileUploader({ onFileSelect, disabled }: FileUploaderPro
         }
     }, []);
 
-    const validateAndSetFile = (file: File) => {
+    const validateAndSetFiles = (files: FileList | File[]) => {
+        const validFiles: File[] = [];
         const validTypes = ["application/pdf", "application/vnd.openxmlformats-officedocument.presentationml.presentation", "application/vnd.ms-powerpoint"];
 
-        // Simple extension check as fallback
-        const isPDF = file.name.toLowerCase().endsWith(".pdf");
-        const isPPT = file.name.toLowerCase().endsWith(".pptx") || file.name.toLowerCase().endsWith(".ppt");
+        Array.from(files).forEach(file => {
+            const isPDF = file.name.toLowerCase().endsWith(".pdf");
+            const isPPT = file.name.toLowerCase().endsWith(".pptx") || file.name.toLowerCase().endsWith(".ppt");
+            if (validTypes.includes(file.type) || isPDF || isPPT) {
+                validFiles.push(file);
+            }
+        });
 
-        if (validTypes.includes(file.type) || isPDF || isPPT) {
-            setFileName(file.name);
+        if (validFiles.length > 0) {
+            setFileCount(validFiles.length);
             setError(null);
-            onFileSelect(file);
+            onFileSelect(validFiles);
         } else {
-            setError("Please upload a PDF or PowerPoint file.");
-            setFileName(null);
+            setError("Please upload valid PDF or PowerPoint files.");
+            setFileCount(0);
         }
     };
 
@@ -48,8 +53,8 @@ export default function FileUploader({ onFileSelect, disabled }: FileUploaderPro
             setDragActive(false);
             if (disabled) return;
 
-            if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-                validateAndSetFile(e.dataTransfer.files[0]);
+            if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                validateAndSetFiles(e.dataTransfer.files);
             }
         },
         [disabled, onFileSelect]
@@ -58,8 +63,8 @@ export default function FileUploader({ onFileSelect, disabled }: FileUploaderPro
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         e.preventDefault();
         if (disabled) return;
-        if (e.target.files && e.target.files[0]) {
-            validateAndSetFile(e.target.files[0]);
+        if (e.target.files && e.target.files.length > 0) {
+            validateAndSetFiles(e.target.files);
         }
     };
 
@@ -77,10 +82,10 @@ export default function FileUploader({ onFileSelect, disabled }: FileUploaderPro
                 onDrop={handleDrop}
             >
                 <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                    {fileName ? (
+                    {fileCount > 0 ? (
                         <>
                             <FileText className="w-10 h-10 mb-3 text-blue-500" />
-                            <p className="mb-2 text-sm text-gray-700 font-semibold">{fileName}</p>
+                            <p className="mb-2 text-sm text-gray-700 font-semibold">{fileCount} files selected</p>
                             <p className="text-xs text-gray-500">Ready to process</p>
                         </>
                     ) : (
@@ -89,7 +94,7 @@ export default function FileUploader({ onFileSelect, disabled }: FileUploaderPro
                             <p className="mb-2 text-sm text-gray-500">
                                 <span className="font-semibold">Click to upload</span> or drag and drop
                             </p>
-                            <p className="text-xs text-gray-500">PDF or PPT (MAX. 200MB)</p>
+                            <p className="text-xs text-gray-500">PDF or PPT (Batch Upload Supported)</p>
                         </>
                     )}
                 </div>
@@ -100,6 +105,7 @@ export default function FileUploader({ onFileSelect, disabled }: FileUploaderPro
                     onChange={handleChange}
                     accept=".pdf,.ppt,.pptx"
                     disabled={disabled}
+                    multiple
                 />
             </div>
             {error && (

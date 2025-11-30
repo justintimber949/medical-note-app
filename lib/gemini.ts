@@ -53,7 +53,7 @@ Tugas Anda adalah memperkaya catatan ini dengan wawasan tingkat tinggi, memastik
     *   Tambahkan blok **"Korelasi Klinis"**: Jelaskan presentasi klinis atau relevansi konsep tersebut.
     *   Tambahkan detail **"Mekanisme Aksi"**: Selami patofisiologinya.
     *   Tambahkan **"Jembatan Keledai (Mnemonics)"**: Berikan bantuan memori untuk daftar atau kriteria kompleks.
-    *   Tambahkan **"Tips Belajar & Bandingkan"**: Berikan analogi atau penjelasan tambahan untuk konsep sulit. JIKA RELEVAN, buat **Tabel Perbandingan** dengan penyakit/kondisi lain yang serupa (Diagnosis Banding) untuk memperjelas perbedaan.
+    *   Tambahkan **"Tips Belajar"**: Berikan analogi atau penjelasan tambahan untuk konsep sulit. JIKA RELEVAN, buat **Tabel Perbandingan** dengan penyakit/kondisi lain yang serupa (Diagnosis Banding) untuk memperjelas perbedaan.
 3.  **Nada**: Gunakan nada yang jelas, terperinci, dan mudah dipahami, seperti teman pintar yang menjelaskan kepada mahasiswa lain.
 4.  **Batasan**: JANGAN hapus informasi yang sudah ada. Anda menambahkan nilai, bukan meringkas.
 5.  **Format**: Kembalikan dokumen Markdown lengkap yang diperbarui dengan tambahan Anda yang terintegrasi. Anda dapat menggunakan blockquotes (>) atau teks tebal untuk menyoroti tambahan Anda.
@@ -126,5 +126,20 @@ ${stage2Content}
       },
     },
   ]);
+  return result.response.text();
+}
+
+export async function runChat(apiKey: string, history: { role: "user" | "model"; parts: string }[], message: string, context: string) {
+  const genAI = new GoogleGenerativeAI(apiKey);
+  const model = genAI.getGenerativeModel({
+    model: "gemini-2.0-flash-exp",
+    systemInstruction: `Anda adalah asisten medis cerdas. Jawab pertanyaan berdasarkan KONTEKS CATATAN berikut. Jika tidak ada di konteks, gunakan pengetahuan medis Anda.\n\nKONTEKS:\n${context}`
+  });
+
+  const chat = model.startChat({
+    history: history.map(h => ({ role: h.role, parts: [{ text: h.parts }] })),
+  });
+
+  const result = await chat.sendMessage(message);
   return result.response.text();
 }

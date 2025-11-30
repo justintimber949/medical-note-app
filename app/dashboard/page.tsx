@@ -3,120 +3,21 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import FileUploader from "@/components/FileUploader";
-import PipelineStatus, { StageStatus } from "@/components/PipelineStatus";
-import { runStage1, runStage2, runStage3, delay } from "@/lib/gemini";
-import { AlertTriangle, LogOut } from "lucide-react";
+import LibraryList from "@/components/LibraryList";
+import ChatBot from "@/components/ChatBot";
+import { useQueue } from "@/context/QueueContext";
+import { LogOut, Loader2, CheckCircle, AlertTriangle, Clock, FileText } from "lucide-react";
 
 export default function Dashboard() {
     const router = useRouter();
+    const { addFiles, queue, isProcessing, delayRemaining } = useQueue();
     const [apiKey, setApiKey] = useState<string | null>(null);
-    const [file, setFile] = useState<File | null>(null);
-
-    // Pipeline State
-    const [isProcessing, setIsProcessing] = useState(false);
-    const [currentStage, setCurrentStage] = useState<1 | 2 | 3 | 0>(0);
-    const [stage1Status, setStage1Status] = useState<StageStatus>("pending");
-    const [stage2Status, setStage2Status] = useState<StageStatus>("pending");
-    const [stage3Status, setStage3Status] = useState<StageStatus>("pending");
-    const [delayRemaining, setDelayRemaining] = useState(0);
-
-    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         const storedKey = localStorage.getItem("gemini_api_key");
-        if (!storedKey) {
-            router.push("/setup");
-        } else {
-            setApiKey(storedKey);
-        }
+        if (!storedKey) router.push("/setup");
+        else setApiKey(storedKey);
     }, [router]);
-
-    const fileToGenerativePart = async (file: File): Promise<{ data: string; mimeType: string }> => {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                const base64String = (reader.result as string).split(",")[1];
-                resolve({
-                    data: base64String,
-                    mimeType: file.type,
-                });
-            };
-            reader.onerror = reject;
-            reader.readAsDataURL(file);
-        });
-    };
-
-    const runDelay = async (seconds: number) => {
-        for (let i = seconds; i > 0; i--) {
-            setDelayRemaining(i);
-            await delay(1000);
-        }
-        setDelayRemaining(0);
-    };
-
-    const handleProcess = async () => {
-        if (!apiKey || !file) return;
-
-        setIsProcessing(true);
-        setError(null);
-
-        // Reset Statuses
-        setStage1Status("pending");
-        setStage2Status("pending");
-        setStage3Status("pending");
-        setCurrentStage(1);
-
-        try {
-            const fileData = await fileToGenerativePart(file);
-
-            // --- STAGE 1 ---
-            setStage1Status("processing");
-            const stage1Result = await runStage1(apiKey, fileData.data, fileData.mimeType);
-            setStage1Status("completed");
-
-            // Delay between Stage 1 and 2
-            setStage1Status("waiting");
-            await runDelay(10);
-            setStage1Status("completed");
-
-            // --- STAGE 2 ---
-            setCurrentStage(2);
-            setStage2Status("processing");
-            // Re-sending file data for context
-            const stage2Result = await runStage2(apiKey, stage1Result, fileData.data, fileData.mimeType);
-            setStage2Status("completed");
-
-            // Delay between Stage 2 and 3
-            setStage2Status("waiting");
-            await runDelay(10);
-            setStage2Status("completed");
-
-            // --- STAGE 3 ---
-            setCurrentStage(3);
-            setStage3Status("processing");
-            // Re-sending file data for context
-            const stage3Result = await runStage3(apiKey, stage2Result, fileData.data, fileData.mimeType);
-            setStage3Status("completed");
-
-            // Combine Results: ASCII Art (Stage 3) + Enriched Note (Stage 2)
-            const finalNote = `${stage3Result}\n\n${stage2Result}`;
-
-            // Save to LocalStorage and Redirect
-            localStorage.setItem("gemini_note_content", finalNote);
-            localStorage.setItem("gemini_note_filename", file.name);
-            router.push("/dashboard/result");
-
-        } catch (err: any) {
-            console.error(err);
-            setError(err.message || "An unexpected error occurred.");
-            if (currentStage === 1) setStage1Status("error");
-            if (currentStage === 2) setStage2Status("error");
-            if (currentStage === 3) setStage3Status("error");
-        } finally {
-            setIsProcessing(false);
-            setCurrentStage(0);
-        }
-    };
 
     const handleLogout = () => {
         localStorage.removeItem("gemini_api_key");
@@ -126,69 +27,78 @@ export default function Dashboard() {
     if (!apiKey) return null;
 
     return (
-        <main className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-4xl mx-auto space-y-8">
-
-                {/* Header */}
-                <div className="flex items-center justify-between">
-                    <div>
-                        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-                        <p className="text-gray-600">Upload your lecture to start generating notes.</p>
+        <main className="min-h-screen bg-gray-50 flex flex-col">
+            {/* Header */}
+            <header className="bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center sticky top-0 z-10 shadow-sm">
+                <div className="flex items-center gap-2">
+                    <div className="bg-blue-600 p-1.5 rounded-lg">
+                        <FileText className="w-5 h-5 text-white" />
                     </div>
-                    <button
-                        onClick={handleLogout}
-                        className="flex items-center gap-2 text-sm text-red-600 hover:text-red-700 transition-colors"
-                    >
-                        <LogOut className="w-4 h-4" />
-                        Reset API Key
-                    </button>
+                    <h1 className="text-xl font-bold text-gray-900">Medical Note Generator</h1>
                 </div>
+                <button onClick={handleLogout} className="text-sm text-red-600 hover:text-red-700 flex items-center gap-2 font-medium px-3 py-1.5 hover:bg-red-50 rounded-lg transition-colors">
+                    <LogOut className="w-4 h-4" /> Reset Key
+                </button>
+            </header>
 
-                {/* Main Workspace */}
-                <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="flex-1 flex overflow-hidden">
+                {/* Sidebar Library */}
+                <aside className="w-80 bg-white border-r border-gray-200 p-4 overflow-y-auto hidden md:flex flex-col">
+                    <LibraryList />
+                </aside>
 
-                    {/* Upload Section */}
-                    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                        <h2 className="text-lg font-semibold text-gray-900 mb-4">Upload Lecture Material</h2>
-                        <FileUploader onFileSelect={setFile} disabled={isProcessing} />
+                {/* Main Content */}
+                <div className="flex-1 p-6 overflow-y-auto">
+                    <div className="max-w-4xl mx-auto space-y-8">
 
-                        {file && !isProcessing && (
-                            <div className="mt-4 flex justify-end">
-                                <button
-                                    onClick={handleProcess}
-                                    className="px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
-                                >
-                                    Start Generation Pipeline
-                                </button>
+                        {/* Upload Area */}
+                        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                            <h2 className="text-lg font-semibold mb-4 text-gray-800">Upload Materials</h2>
+                            <FileUploader onFileSelect={addFiles} disabled={false} />
+                        </div>
+
+                        {/* Queue Progress */}
+                        {queue.length > 0 && (
+                            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                <div className="flex justify-between items-center mb-4">
+                                    <h2 className="text-lg font-semibold text-gray-800">Processing Queue</h2>
+                                    {isProcessing && delayRemaining > 0 && (
+                                        <span className="text-orange-600 text-sm font-medium flex items-center gap-2 bg-orange-50 px-3 py-1 rounded-full border border-orange-100">
+                                            <Clock className="w-4 h-4" /> Cooling down: {delayRemaining}s
+                                        </span>
+                                    )}
+                                </div>
+
+                                <div className="space-y-3">
+                                    {queue.map((item) => (
+                                        <div key={item.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100 hover:border-blue-200 transition-colors">
+                                            <div className="flex items-center gap-3">
+                                                {item.status === 'pending' && <Clock className="w-5 h-5 text-gray-400" />}
+                                                {item.status === 'processing' && <Loader2 className="w-5 h-5 text-blue-500 animate-spin" />}
+                                                {item.status === 'completed' && <CheckCircle className="w-5 h-5 text-green-500" />}
+                                                {item.status === 'failed' && <AlertTriangle className="w-5 h-5 text-red-500" />}
+
+                                                <div>
+                                                    <p className="text-sm font-medium text-gray-900">{item.fileName}</p>
+                                                    <p className="text-xs text-gray-500">
+                                                        {item.status === 'pending' && 'Waiting...'}
+                                                        {item.status === 'processing' && `Processing Stage ${item.stage}/3`}
+                                                        {item.status === 'completed' && 'Done'}
+                                                        {item.status === 'failed' && 'Failed'}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            {item.error && <span className="text-xs text-red-500 font-medium">{item.error}</span>}
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
                         )}
                     </div>
-
-                    {/* Pipeline Status */}
-                    {(isProcessing || error) && (
-                        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                            <PipelineStatus
-                                stage1={stage1Status}
-                                stage2={stage2Status}
-                                stage3={stage3Status}
-                                currentStage={currentStage}
-                                delayRemaining={delayRemaining}
-                            />
-
-                            {error && (
-                                <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3 text-red-700">
-                                    <AlertTriangle className="w-5 h-5 flex-shrink-0 mt-0.5" />
-                                    <div>
-                                        <h4 className="font-medium">Generation Failed</h4>
-                                        <p className="text-sm mt-1">{error}</p>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    )}
-
                 </div>
             </div>
+
+            <ChatBot />
         </main>
     );
 }
