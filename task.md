@@ -64,7 +64,7 @@
   - [x] Visualize Queue Progress (Pending -> Processing -> Completed).
 
 - [x] **Feature: Context-Aware Chatbot**
-  - [x] Select Model: `gemini-2.0-flash-exp`.
+  - [x] Select Model: `gemini-2.0-flash`.
   - [x] Create `components/ChatBot.tsx` (Floating Widget).
   - [x] Implement `runChat` in `lib/gemini.ts`.
   - [x] Implement Context Injection (Fetch all notes -> System Instruction).

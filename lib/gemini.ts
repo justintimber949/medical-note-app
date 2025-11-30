@@ -132,7 +132,7 @@ ${stage2Content}
 export async function runChat(apiKey: string, history: { role: "user" | "model"; parts: string }[], message: string, context: string) {
   const genAI = new GoogleGenerativeAI(apiKey);
   const model = genAI.getGenerativeModel({
-    model: "gemini-2.0-flash-exp",
+    model: "gemini-2.0-flash",
     systemInstruction: `Anda adalah asisten medis cerdas. Jawab pertanyaan berdasarkan KONTEKS CATATAN berikut. Jika tidak ada di konteks, gunakan pengetahuan medis Anda.\n\nKONTEKS:\n${context}`
   });
 
