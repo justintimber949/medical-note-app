@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Brain, Sparkles, FileText, Zap } from "lucide-react";
+import { ArrowRight, Brain, Sparkles, FileText, Zap, Layers, MessageSquare, Database } from "lucide-react";
 
 export default function LandingPage() {
   return (
@@ -27,14 +27,14 @@ export default function LandingPage() {
           <div className="mx-auto max-w-2xl text-center">
             <div className="mb-8 flex justify-center">
               <div className="relative rounded-full px-3 py-1 text-sm leading-6 text-gray-600 ring-1 ring-gray-900/10 hover:ring-gray-900/20">
-                Powered by Gemini 2.0 Flash & 2.5 Pro <span className="font-semibold text-blue-600">New</span>
+                Powered by Gemini 2.0 Flash & IndexedDB <span className="font-semibold text-blue-600">New</span>
               </div>
             </div>
             <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-6xl">
-              Transform Medical Lectures into <span className="text-blue-600">Mastery</span>
+              Your Personal Medical <span className="text-blue-600">Knowledge Base</span>
             </h1>
             <p className="mt-6 text-lg leading-8 text-gray-600">
-              The advanced AI companion for medical students. Turn complex PDF/PPT slides into enriched, structured, and visualized study notes in seconds.
+              Upload entire lectures in batches. Chat with your notes. Store everything locally. The ultimate study companion for medical students.
             </p>
             <div className="mt-10 flex items-center justify-center gap-x-6">
               <Link
@@ -45,42 +45,53 @@ export default function LandingPage() {
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Link>
               <a href="#features" className="text-sm font-semibold leading-6 text-gray-900">
-                Learn more <span aria-hidden="true">→</span>
+                See New Features <span aria-hidden="true">→</span>
               </a>
             </div>
           </div>
 
-          {/* Abstract UI Representation */}
+          {/* Feature Showcase UI */}
           <div className="mt-16 flow-root sm:mt-24">
             <div className="-m-2 rounded-xl bg-gray-900/5 p-2 ring-1 ring-inset ring-gray-900/10 lg:-m-4 lg:rounded-2xl lg:p-4">
-              <div className="bg-white rounded-xl shadow-2xl ring-1 ring-gray-900/10 overflow-hidden">
-                <div className="flex items-center gap-4 border-b border-gray-100 bg-gray-50/50 p-4">
-                  <div className="flex gap-1.5">
-                    <div className="w-3 h-3 rounded-full bg-red-400" />
-                    <div className="w-3 h-3 rounded-full bg-yellow-400" />
-                    <div className="w-3 h-3 rounded-full bg-green-400" />
-                  </div>
-                  <div className="h-6 w-64 bg-gray-200 rounded-md opacity-50" />
-                </div>
-                <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div className="space-y-4">
-                    <div className="h-4 w-3/4 bg-gray-100 rounded animate-pulse" />
-                    <div className="h-4 w-full bg-gray-100 rounded animate-pulse" />
-                    <div className="h-4 w-5/6 bg-gray-100 rounded animate-pulse" />
-                    <div className="h-32 w-full bg-blue-50 rounded-lg border border-blue-100 flex items-center justify-center">
-                      <span className="text-blue-400 font-mono text-sm">Processing Lecture Slides...</span>
+              <div className="bg-white rounded-xl shadow-2xl ring-1 ring-gray-900/10 overflow-hidden relative">
+                {/* Mockup of Dashboard */}
+                <div className="grid grid-cols-12 h-[400px]">
+                  {/* Sidebar Mockup */}
+                  <div className="col-span-3 bg-gray-50 border-r border-gray-200 p-4 hidden md:block">
+                    <div className="h-4 w-24 bg-gray-200 rounded mb-6"></div>
+                    <div className="space-y-3">
+                      {[1, 2, 3].map(i => (
+                        <div key={i} className="h-10 bg-white border border-gray-200 rounded-lg shadow-sm"></div>
+                      ))}
                     </div>
                   </div>
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2 text-green-600 bg-green-50 px-3 py-1 rounded-full w-fit text-xs font-medium">
-                      <Sparkles className="w-3 h-3" />
-                      AI Enrichment Active
+                  {/* Main Content Mockup */}
+                  <div className="col-span-12 md:col-span-9 p-6 bg-white relative">
+                    <div className="absolute bottom-6 right-6 w-64 h-80 bg-white border border-gray-200 rounded-xl shadow-xl flex flex-col overflow-hidden">
+                      <div className="bg-blue-600 p-3 text-white text-xs font-bold flex items-center gap-2">
+                        <MessageSquare className="w-3 h-3" /> Medical AI Chat
+                      </div>
+                      <div className="flex-1 p-3 bg-gray-50 space-y-2">
+                        <div className="bg-white p-2 rounded-lg text-xs text-gray-600 shadow-sm w-3/4 ml-auto">
+                          What is the mechanism of action for...
+                        </div>
+                        <div className="bg-blue-600 p-2 rounded-lg text-xs text-white shadow-sm w-3/4">
+                          Based on your notes, it inhibits...
+                        </div>
+                      </div>
                     </div>
-                    <div className="h-4 w-full bg-gray-100 rounded" />
-                    <div className="h-4 w-full bg-gray-100 rounded" />
-                    <div className="p-4 bg-gray-50 rounded-lg border-l-4 border-blue-500">
-                      <p className="text-sm text-gray-600 font-medium">Clinical Correlate</p>
-                      <p className="text-xs text-gray-500 mt-1">Detailed explanation of pathophysiology...</p>
+                    <div className="h-32 border-2 border-dashed border-blue-200 bg-blue-50 rounded-xl flex items-center justify-center mb-6">
+                      <span className="text-blue-500 font-medium">Batch Upload PDF/PPT</span>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="h-12 bg-gray-50 border border-gray-100 rounded-lg flex items-center px-4 justify-between">
+                        <span className="text-sm text-gray-500">Lecture 1.pdf</span>
+                        <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">Completed</span>
+                      </div>
+                      <div className="h-12 bg-gray-50 border border-gray-100 rounded-lg flex items-center px-4 justify-between">
+                        <span className="text-sm text-gray-500">Lecture 2.pptx</span>
+                        <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">Processing Stage 2/3</span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -95,24 +106,39 @@ export default function LandingPage() {
       <section id="features" className="py-24 bg-gray-50">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="mx-auto max-w-2xl text-center mb-16">
-            <h2 className="text-base font-semibold leading-7 text-blue-600">Faster Learning</h2>
+            <h2 className="text-base font-semibold leading-7 text-blue-600">Power Features</h2>
             <p className="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-              Everything you need to ace the exam
+              Built for the modern medical student
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <FeatureCard
-              icon={<FileText className="w-6 h-6 text-blue-600" />}
+              icon={<Layers className="w-6 h-6 text-blue-600" />}
+              title="Batch Processing"
+              description="Upload 20+ files at once. The system processes them sequentially with smart rate-limiting to protect your API key."
+            />
+            <FeatureCard
+              icon={<MessageSquare className="w-6 h-6 text-purple-600" />}
+              title="Context-Aware Chat"
+              description="Ask questions and get answers based on ALL your generated notes. It's like having a tutor who memorized your entire library."
+            />
+            <FeatureCard
+              icon={<Database className="w-6 h-6 text-amber-600" />}
+              title="Persistent Library"
+              description="Your notes are saved to a local database (IndexedDB). Close the tab, come back later, and pick up right where you left off."
+            />
+            <FeatureCard
+              icon={<FileText className="w-6 h-6 text-green-600" />}
               title="Smart Transcription"
               description="Converts raw slides into clean, structured Markdown notes, preserving all medical terminology."
             />
             <FeatureCard
-              icon={<Sparkles className="w-6 h-6 text-purple-600" />}
+              icon={<Sparkles className="w-6 h-6 text-indigo-600" />}
               title="Deep Enrichment"
               description="Adds clinical correlates, mechanisms of action, and mnemonics to help you understand the 'Why'."
             />
             <FeatureCard
-              icon={<Zap className="w-6 h-6 text-amber-600" />}
+              icon={<Zap className="w-6 h-6 text-red-600" />}
               title="Visual Synthesis"
               description="Generates ASCII art diagrams to visualize complex pathways and hierarchies instantly."
             />
