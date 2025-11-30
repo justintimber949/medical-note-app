@@ -6,11 +6,11 @@ import FileUploader from "@/components/FileUploader";
 import LibraryList from "@/components/LibraryList";
 import ChatBot from "@/components/ChatBot";
 import { useQueue } from "@/context/QueueContext";
-import { LogOut, Loader2, CheckCircle, AlertTriangle, Clock, FileText, Play } from "lucide-react";
+import { LogOut, Loader2, CheckCircle, AlertTriangle, Clock, FileText, Play, Pause, Trash2 } from "lucide-react";
 
 export default function Dashboard() {
     const router = useRouter();
-    const { addFiles, queue, isProcessing, delayRemaining, startQueue } = useQueue();
+    const { addFiles, queue, isProcessing, delayRemaining, startQueue, pauseQueue, resumeQueue, clearCompleted, isQueueActive } = useQueue();
     const [apiKey, setApiKey] = useState<string | null>(null);
 
     useEffect(() => {
@@ -56,16 +56,47 @@ export default function Dashboard() {
                             <h2 className="text-lg font-semibold mb-4 text-gray-800">Upload Materials</h2>
                             <FileUploader onFileSelect={addFiles} disabled={isProcessing} />
 
-                            {queue.some(q => q.status === 'pending') && !isProcessing && (
-                                <div className="mt-4 flex justify-end">
+                            <div className="mt-4 flex flex-wrap gap-2 justify-end">
+                                {/* Start Button */}
+                                {queue.some(q => q.status === 'pending') && !isProcessing && !isQueueActive && (
                                     <button
                                         onClick={startQueue}
                                         className="px-6 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors shadow-sm flex items-center gap-2"
                                     >
-                                        <Play className="w-4 h-4" /> Start Processing Queue
+                                        <Play className="w-4 h-4" /> Start Processing
                                     </button>
-                                </div>
-                            )}
+                                )}
+
+                                {/* Stop/Pause Button */}
+                                {isQueueActive && (
+                                    <button
+                                        onClick={pauseQueue}
+                                        className="px-6 py-2 bg-yellow-500 text-white font-medium rounded-lg hover:bg-yellow-600 transition-colors shadow-sm flex items-center gap-2"
+                                    >
+                                        <Pause className="w-4 h-4" /> Stop/Pause
+                                    </button>
+                                )}
+
+                                {/* Resume Button (if paused but has pending) */}
+                                {!isQueueActive && queue.some(q => q.status === 'pending') && queue.some(q => q.status !== 'pending') && (
+                                    <button
+                                        onClick={resumeQueue}
+                                        className="px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-sm flex items-center gap-2"
+                                    >
+                                        <Play className="w-4 h-4" /> Resume
+                                    </button>
+                                )}
+
+                                {/* Clear Completed/Failed Button */}
+                                {queue.some(q => q.status === 'completed' || q.status === 'failed') && (
+                                    <button
+                                        onClick={clearCompleted}
+                                        className="px-6 py-2 bg-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-300 transition-colors shadow-sm flex items-center gap-2"
+                                    >
+                                        <Trash2 className="w-4 h-4" /> Clear History
+                                    </button>
+                                )}
+                            </div>
                         </div>
 
                         {/* Queue Progress */}

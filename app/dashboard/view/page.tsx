@@ -4,23 +4,24 @@ import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { getNote, getFile } from "@/lib/db";
 import NoteViewer from "@/components/NoteViewer";
+import ChatBot from "@/components/ChatBot";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import Link from "next/link";
 
 function NoteViewContent() {
   const searchParams = useSearchParams();
   const id = searchParams.get("id");
-  
+
   const [note, setNote] = useState<any>(null);
   const [fileName, setFileName] = useState<string>("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!id) {
-        setLoading(false);
-        return;
+      setLoading(false);
+      return;
     }
-    
+
     const loadData = async () => {
       try {
         const noteData = await getNote(id);
@@ -68,18 +69,19 @@ function NoteViewContent() {
           <p className="text-xs text-gray-500">Generated on {new Date(note.createdAt).toLocaleDateString()}</p>
         </div>
       </header>
-      
+
       <main className="max-w-4xl mx-auto p-6">
         <NoteViewer content={note.content} />
       </main>
+      <ChatBot />
     </div>
   );
 }
 
 export default function NoteViewPage() {
-    return (
-        <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-gray-50"><Loader2 className="w-8 h-8 animate-spin text-blue-600" /></div>}>
-            <NoteViewContent />
-        </Suspense>
-    );
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-gray-50"><Loader2 className="w-8 h-8 animate-spin text-blue-600" /></div>}>
+      <NoteViewContent />
+    </Suspense>
+  );
 }
