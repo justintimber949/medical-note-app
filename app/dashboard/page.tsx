@@ -6,11 +6,11 @@ import FileUploader from "@/components/FileUploader";
 import LibraryList from "@/components/LibraryList";
 import ChatBot from "@/components/ChatBot";
 import { useQueue } from "@/context/QueueContext";
-import { LogOut, Loader2, CheckCircle, AlertTriangle, Clock, FileText } from "lucide-react";
+import { LogOut, Loader2, CheckCircle, AlertTriangle, Clock, FileText, Play } from "lucide-react";
 
 export default function Dashboard() {
     const router = useRouter();
-    const { addFiles, queue, isProcessing, delayRemaining } = useQueue();
+    const { addFiles, queue, isProcessing, delayRemaining, startQueue } = useQueue();
     const [apiKey, setApiKey] = useState<string | null>(null);
 
     useEffect(() => {
@@ -54,7 +54,18 @@ export default function Dashboard() {
                         {/* Upload Area */}
                         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
                             <h2 className="text-lg font-semibold mb-4 text-gray-800">Upload Materials</h2>
-                            <FileUploader onFileSelect={addFiles} disabled={false} />
+                            <FileUploader onFileSelect={addFiles} disabled={isProcessing} />
+
+                            {queue.some(q => q.status === 'pending') && !isProcessing && (
+                                <div className="mt-4 flex justify-end">
+                                    <button
+                                        onClick={startQueue}
+                                        className="px-6 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors shadow-sm flex items-center gap-2"
+                                    >
+                                        <Play className="w-4 h-4" /> Start Processing Queue
+                                    </button>
+                                </div>
+                            )}
                         </div>
 
                         {/* Queue Progress */}

@@ -25,9 +25,12 @@ export interface QueueItem {
 interface QueueContextType {
     queue: QueueItem[];
     isProcessing: boolean;
+    isQueueActive: boolean;
     addFiles: (files: File[]) => Promise<void>;
     retryItem: (id: string) => Promise<void>;
     clearCompleted: () => Promise<void>;
+    startQueue: () => void;
+    pauseQueue: () => void;
     delayRemaining: number;
 }
 
@@ -36,6 +39,7 @@ const QueueContext = createContext<QueueContextType | undefined>(undefined);
 export function QueueProvider({ children }: { children: React.ReactNode }) {
     const [queue, setQueue] = useState<QueueItem[]>([]);
     const [isProcessing, setIsProcessing] = useState(false);
+    const [isQueueActive, setIsQueueActive] = useState(false);
     const [delayRemaining, setDelayRemaining] = useState(0);
 
     // Load queue on mount
@@ -66,11 +70,14 @@ export function QueueProvider({ children }: { children: React.ReactNode }) {
 
     // Process Queue Effect
     useEffect(() => {
-        if (isProcessing) return; // Already running loop
+        if (isProcessing || !isQueueActive) return; // Only run if active and not already processing
 
         const processNext = async () => {
             const pendingItems = queue.filter((item) => item.status === "pending");
-            if (pendingItems.length === 0) return;
+            if (pendingItems.length === 0) {
+                setIsQueueActive(false); // Stop when done
+                return;
+            }
 
             setIsProcessing(true);
             const item = pendingItems[0];
@@ -125,11 +132,11 @@ export function QueueProvider({ children }: { children: React.ReactNode }) {
 
         // Check if we should start processing
         const hasPending = queue.some(q => q.status === 'pending');
-        if (hasPending && !isProcessing) {
+        if (hasPending && !isProcessing && isQueueActive) {
             processNext();
         }
 
-    }, [queue, isProcessing]);
+    }, [queue, isProcessing, isQueueActive]);
 
     const updateStatus = async (id: string, status: QueueItem["status"], stage: QueueItem["stage"], error?: string) => {
         await updateQueueStatus(id, status, stage, error);
@@ -187,8 +194,11 @@ export function QueueProvider({ children }: { children: React.ReactNode }) {
         // setQueue(prev => prev.filter(item => item.status !== 'completed'));
     };
 
+    const startQueue = () => setIsQueueActive(true);
+    const pauseQueue = () => setIsQueueActive(false);
+
     return (
-        <QueueContext.Provider value={{ queue, isProcessing, addFiles, retryItem, clearCompleted, delayRemaining }}>
+        <QueueContext.Provider value={{ queue, isProcessing, isQueueActive, addFiles, retryItem, clearCompleted, startQueue, pauseQueue, delayRemaining }}>
             {children}
         </QueueContext.Provider>
     );
